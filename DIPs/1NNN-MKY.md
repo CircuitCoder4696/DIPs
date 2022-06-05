@@ -77,7 +77,8 @@ void main(){
 		dp();
 	}
 }
-```<!-- Unfortunately running into difficulties with this one.  
+```
+<!-- Unfortunately running into difficulties with this one.  
     onlineapp.d(3): Error: found `:` when expecting `)`
     Also, `symbols:__LOCAL__` as a parameter for `debugprinter` doesn't look right to me.  
  -->
