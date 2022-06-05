@@ -1,4 +1,4 @@
-# `__HERE__` special token
+# `__LOCAL__` special token
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -16,7 +16,7 @@ Returns user-defined local symbols, that are defined before the token call site.
 ```
 int foo;
 float bar;
-static assert(is(__LOCAL_VARS__==AliasSeq!(foo,bar));
+static assert(is(__LOCAL__==AliasSeq!(foo,bar));
 ```
 
 
@@ -42,9 +42,9 @@ I am unaware of any compiled languages that allow D's level introspection or any
 
 ## Description
 
-`__LOCAL_VARS__` is added to the list of reserve keywords.
+`__LOCAL__` is added to the list of reserve keywords.
 
-The `__LOCAL_VARS__` token is replaced with an `AliasSquence` of variables, functions, aliases, enums, and types declared after the current `BlockStatement` but before the `__LOCAL_VARS__`'s token position in the `StatementList`.
+The `__LOCAL__` token is replaced with an `AliasSquence` of variables, functions, aliases, enums, and types declared after the current `BlockStatement` but before the `__LOCAL__`'s token position in the `StatementList`.
 
 ```d
 int ignored;
@@ -53,16 +53,16 @@ void main(){
     alias foo=referenced;
     struct bar{}
     alias faz=sometemplate!int;
-    alias firstcopy=__LOCAL_VARS__;//foo,bar,faz
+    alias firstcopy=__LOCAL__;//foo,bar,faz
     int baz;
-    alias secondcopy=__LOCAL_VARS__;//foo,bar,faz,firstcopy,baz
+    alias secondcopy=__LOCAL__;//foo,bar,faz,firstcopy,baz
 }
 ```
 
 ## Examples
 
 ```d
-void debugprinter(alias symbols= __LOCAL_VARS__){
+void debugprinter(alias symbols= __LOCAL__){
 	foreach(s;symbols){
 		s.stringof.writeln(" : ",s);
 }}
@@ -79,7 +79,7 @@ void main(){
 }
 ```<!-- Unfortunately running into difficulties with this one.  
     onlineapp.d(3): Error: found `:` when expecting `)`
-    Also, `symbols:__LOCAL_VARS__` as a parameter for `debugprinter` doesn't look right to me.  
+    Also, `symbols:__LOCAL__` as a parameter for `debugprinter` doesn't look right to me.  
  -->
 
 ```d
@@ -114,7 +114,7 @@ struct bullet{
 }
 
 // The compiler would treat the code in the next line by generating something like alias `AliasSeq!(`{local variables listed in an alias-sequence}`)`.  
-alias mytypes=__LOCAL_VARS__;
+alias mytypes=__LOCAL__;
     AliasSeq!(Vector2, player, asteroid, bullet);
 struct myarray(T){
 	T[T.maxcount] me;
