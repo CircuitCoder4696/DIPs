@@ -164,12 +164,12 @@ It's unclear if the static foreach would be processed or not, and neither case i
 
 In the event the products of the mixin are included, the user will need to filter out their mixins so they don't cause an infinite loop.
 
-In the event the products of the mixin are excluded, your defining `__LOCAL_SCOPE__` to be a snapshot in time that may be mutating under the user, same as `__LOCAL_VARS__`, with the additional complexity of wondering which `__traits` are lazy or greedy.
+In the event the products of the mixin are excluded, your defining `__LOCAL_SCOPE__` to be a snapshot in time that may be mutating under the user, same as `__LOCAL__`, with the additional complexity of wondering which `__traits` are lazy or greedy.
 
 
 ## Breaking Changes and Deprecations
 
-User code with `__LOCAL_VARS__` will need to pick a new name.  
+User code with `__LOCAL__` will need to pick a new name.  
 
 ## Reference
 Optional links to reference material such as existing discussions, research papers
