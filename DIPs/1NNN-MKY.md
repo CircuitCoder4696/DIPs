@@ -5,6 +5,7 @@
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | monkyyy, monkyyy@shitposting.expert                                    |
+| Co-author(s):   | CircuitCoder4696                                    |
 | Implementation: | (links to implementation PR if any)                             |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
@@ -15,7 +16,7 @@ Returns user-defined local symbols, that are defined before the token call site.
 ```
 int foo;
 float bar;
-static assert(is(__HERE__==AliasSeq!(foo,bar));
+static assert(is(__LOCAL_VARS__==AliasSeq!(foo,bar));
 ```
 
 
@@ -41,9 +42,9 @@ I am unaware of any compiled languages that allow D's level introspection or any
 
 ## Description
 
-`__HERE__` is added to the list of reserve keywords.
+`__LOCAL_VARS__` is added to the list of reserve keywords.
 
-The `__HERE__` token is replaced with an `AliasSquence` of variables, functions, aliases, enums, and types declared after the current `BlockStatement` but before the `__HERE__`'s token position in the `StatementList`.
+The `__LOCAL_VARS__` token is replaced with an `AliasSquence` of variables, functions, aliases, enums, and types declared after the current `BlockStatement` but before the `__LOCAL_VARS__`'s token position in the `StatementList`.
 
 ```d
 int ignored;
@@ -52,16 +53,16 @@ void main(){
     alias foo=referenced;
     struct bar{}
     alias faz=sometemplate!int;
-    alias firstcopy=__HERE__;//foo,bar,faz
+    alias firstcopy=__LOCAL_VARS__;//foo,bar,faz
     int baz;
-    alias secondcopy=__HERE__;//foo,bar,faz,firstcopy,baz
+    alias secondcopy=__LOCAL_VARS__;//foo,bar,faz,firstcopy,baz
 }
 ```
 
 ## Examples
 
 ```d
-void debugprinter(symbols:__HERE__){
+void debugprinter(alias symbols= __LOCAL_VARS__){
 	foreach(s;symbols){
 		s.stringof.writeln(" : ",s);
 }}
@@ -76,10 +77,21 @@ void main(){
 		dp();
 	}
 }
-```
-
+```<!-- Unfortunately running into difficulties with this one.  
+    onlineapp.d(3): Error: found `:` when expecting `)`
+    Also, `symbols:__LOCAL_VARS__` as a parameter for `debugprinter` doesn't look right to me.  
+ -->
 
 ```d
+
+import std;
+
+struct Vector2 {
+    enum maxcount= 2;
+    public double x;
+    public double y;
+}
+
 struct player{
 	enum maxcount=4;
 	int x;
@@ -101,13 +113,19 @@ struct bullet{
 	int yv;
 }
 
-alias mytypes=__HERE__;
+// The compiler would treat the code in the next line by generating something like alias `AliasSeq!(`{local variables listed in an alias-sequence}`)`.  
+alias mytypes=__LOCAL_VARS__;
+    AliasSeq!(Vector2, player, asteroid, bullet);
 struct myarray(T){
 	T[T.maxcount] me;
 }
-foreach(T;mytypes){
-	mixin("myarray!T "~T.stringof~"s;");
-}
+
+void main() {
+    foreach(T;mytypes){
+	    mixin("myarray!T "~T.stringof~"s;");
+    };
+};
+
 ```
 
 
@@ -119,7 +137,7 @@ Given mixin and string imports, you can mixin a block of code while maintaining 
 
 Such code is often described as "clever but ugly", fragile, and this 3rd party parsing limits D's syntax to what the library writer cares to support. It's possible but generally violates style guides.
 
-#### `__MODULE__` and restrict to golbal scope
+#### `__MODULE__` and restrict to global scope
 
 ```d
 template foo(string where:__MODULE__){
@@ -145,12 +163,12 @@ It's unclear if the static foreach would be processed or not, and neither case i
 
 In the event the products of the mixin are included, the user will need to filter out their mixins so they don't cause an infinite loop.
 
-In the event the products of the mixin are excluded, your defining `__LOCAL_SCOPE__` to be a snapshot in time that may be mutating under the user, same as `__HERE__`, with the additional complexity of wondering which `__traits` are lazy or greedy.
+In the event the products of the mixin are excluded, your defining `__LOCAL_SCOPE__` to be a snapshot in time that may be mutating under the user, same as `__LOCAL_VARS__`, with the additional complexity of wondering which `__traits` are lazy or greedy.
 
 
 ## Breaking Changes and Deprecations
 
-User code with `__HERE__` will need to pick a new name.
+User code with `__LOCAL_VARS__` will need to pick a new name.  
 
 ## Reference
 Optional links to reference material such as existing discussions, research papers
