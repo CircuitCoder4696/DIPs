@@ -1,4 +1,4 @@
-# `__LOCAL__` special token
+# `__LOCALS__` special token
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -16,7 +16,7 @@ Returns user-defined local symbols, that are defined before the token call site.
 ```
 int foo;
 float bar;
-static assert(is(__LOCAL__==AliasSeq!(foo,bar));
+static assert(is(__LOCALS__==AliasSeq!(foo,bar));
 ```
 
 
@@ -42,9 +42,9 @@ I am unaware of any compiled languages that allow D's level introspection or any
 
 ## Description
 
-`__LOCAL__` is added to the list of reserve keywords.
+`__LOCALS__` is added to the list of reserve keywords.
 
-The `__LOCAL__` token is replaced with an `AliasSquence` of variables, functions, aliases, enums, and types declared after the current `BlockStatement` but before the `__LOCAL__`'s token position in the `StatementList`.
+The `__LOCALS__` token is replaced with an `AliasSquence` of variables, functions, aliases, enums, and types declared after the current `BlockStatement` but before the `__LOCALS__`'s token position in the `StatementList`.
 
 ```d
 int ignored;
@@ -53,35 +53,34 @@ void main(){
     alias foo=referenced;
     struct bar{}
     alias faz=sometemplate!int;
-    alias firstcopy=__LOCAL__;//foo,bar,faz
+    alias firstcopy=__LOCALS__;//foo,bar,faz
     int baz;
-    alias secondcopy=__LOCAL__;//foo,bar,faz,firstcopy,baz
+    alias secondcopy=__LOCALS__;//foo,bar,faz,firstcopy,baz
 }
 ```
 
 ## Examples
 
 ```d
-void debugprinter(alias symbols= __LOCAL__){
-	foreach(s;symbols){
-		s.stringof.writeln(" : ",s);
-}}
+import std.meta;
+import std.stdio:writeln;
+
+void debugprinter(symbols...)(){
+	foreach(i, v; symbols) writeln(__traits(identifier, symbols[i]),"= ",v);
+}
 
 void main(){
 	int a=1;
 	int b=1;
-	alias dp=debugprinter!();
-	while(true){
+	// alias dp=debugprinter!();
+	foreach(i; 0 .. 3){
 		a=a+b;
 		b=a-b;
-		dp();
+		debugprinter!(__LOCALS__);   //   `__LOCALS__` provides `AliasSeq!(a,b)` as a template parameter here.  
 	}
 }
 ```
-<!-- Unfortunately running into difficulties with this one.  
-    onlineapp.d(3): Error: found `:` when expecting `)`
-    Also, `symbols:__LOCAL__` as a parameter for `debugprinter` doesn't look right to me.  
- -->
+<!-- Compile-time default parameters would be nice.   -->
 
 ```d
 
@@ -115,7 +114,7 @@ struct bullet{
 }
 
 // The compiler would treat the code in the next line by generating something like alias `AliasSeq!(`{local variables listed in an alias-sequence}`)`.  
-alias mytypes=__LOCAL__;
+alias mytypes=__LOCALS__;
     AliasSeq!(Vector2, player, asteroid, bullet);
 struct myarray(T){
 	T[T.maxcount] me;
@@ -164,12 +163,12 @@ It's unclear if the static foreach would be processed or not, and neither case i
 
 In the event the products of the mixin are included, the user will need to filter out their mixins so they don't cause an infinite loop.
 
-In the event the products of the mixin are excluded, your defining `__LOCAL_SCOPE__` to be a snapshot in time that may be mutating under the user, same as `__LOCAL__`, with the additional complexity of wondering which `__traits` are lazy or greedy.
+In the event the products of the mixin are excluded, your defining `__LOCAL_SCOPE__` to be a snapshot in time that may be mutating under the user, same as `__LOCALS__`, with the additional complexity of wondering which `__traits` are lazy or greedy.
 
 
 ## Breaking Changes and Deprecations
 
-User code with `__LOCAL__` will need to pick a new name.  
+User code with `__LOCALS__` will need to pick a new name.  
 
 ## Reference
 Optional links to reference material such as existing discussions, research papers
