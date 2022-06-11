@@ -1,4 +1,4 @@
-# `__LOCAL__` special token
+# `__LOCALS__` special token
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -13,10 +13,13 @@
 
 Returns user-defined local symbols, that are defined before the token call site.
 
+<!--
+This also needs to be corrected.  I don't think you want the language developers to have to correct silly mistakes like this just to see what your trying to convey to them.  
+-->
 ```
 int foo;
 float bar;
-static assert(is(__LOCAL__==AliasSeq!(foo,bar));
+static assert(is(__LOCALS__==AliasSeq!(foo,bar));
 ```
 
 
@@ -36,15 +39,26 @@ Often while meta-programming you want a list of symbols, this can be hard if not
 
 Only grabbing symbols before itself is to avoid circular reference, and to give users an easy filter.
 
+<!--
+More information needed.  
+(1)   What would this be used for, and why?  
+(2)   What other uses would it have?  
+(2)   What other need would it satisfy?  
+-->
+
 ## Prior Work
 
 I am unaware of any compiled languages that allow D's level introspection or any interpreted languages that would use template-like syntax or restrictions.
 
+<!--
+What were you trying to do, in your prior work?  
+-->
+
 ## Description
 
-`__LOCAL__` is added to the list of reserve keywords.
+`__LOCALS__` is added to the list of reserve keywords.
 
-The `__LOCAL__` token is replaced with an `AliasSquence` of variables, functions, aliases, enums, and types declared after the current `BlockStatement` but before the `__LOCAL__`'s token position in the `StatementList`.
+The `__LOCALS__` token is replaced with an `AliasSquence` of variables, functions, aliases, enums, and types declared after the current `BlockStatement` but before the `__LOCAL__`'s token position in the `StatementList`.
 
 ```d
 int ignored;
@@ -53,35 +67,40 @@ void main(){
     alias foo=referenced;
     struct bar{}
     alias faz=sometemplate!int;
-    alias firstcopy=__LOCAL__;//foo,bar,faz
+    alias firstcopy=__LOCALS__;//foo,bar,faz
     int baz;
-    alias secondcopy=__LOCAL__;//foo,bar,faz,firstcopy,baz
+    alias secondcopy=__LOCALS__;//foo,bar,faz,firstcopy,baz
 }
 ```
 
 ## Examples
+<!--
+It needs examples that would actually work in dlang.  
+The example that was removed would require the special token to provide access to scopes other than the local scope,
+ potentially all the way to main.  
+-->
 
 ```d
-void debugprinter(alias symbols= __LOCAL__){
-	foreach(s;symbols){
-		s.stringof.writeln(" : ",s);
-}}
+import std;
+
+string xyz(args...)(string aString) {
+    if(args.length == 0) {
+           // do efault here
+    }
+    foreach(i, v; args) {
+        writeln(__traits(identifier, args[i]),"= ",v);
+    }
+    return aString.format(args[0]);
+}
 
 void main(){
-	int a=1;
-	int b=1;
-	alias dp=debugprinter!();
-	while(true){
-		a=a+b;
-		b=a-b;
-		dp();
-	}
+    int foo= 4;
+    float bar= 2.4;
+    writeln(bar);
+    string d= xyz!(AliasSeq!(foo,bar))("foo= %s;");
+    writeln(d);
 }
 ```
-<!-- Unfortunately running into difficulties with this one.  
-    onlineapp.d(3): Error: found `:` when expecting `)`
-    Also, `symbols:__LOCAL__` as a parameter for `debugprinter` doesn't look right to me.  
- -->
 
 ```d
 
@@ -115,8 +134,8 @@ struct bullet{
 }
 
 // The compiler would treat the code in the next line by generating something like alias `AliasSeq!(`{local variables listed in an alias-sequence}`)`.  
-alias mytypes=__LOCAL__;
-    AliasSeq!(Vector2, player, asteroid, bullet);
+alias mytypes=__LOCALS__;
+    // mytypes= AliasSeq!(Vector2, player, asteroid, bullet);
 struct myarray(T){
 	T[T.maxcount] me;
 }
@@ -164,12 +183,12 @@ It's unclear if the static foreach would be processed or not, and neither case i
 
 In the event the products of the mixin are included, the user will need to filter out their mixins so they don't cause an infinite loop.
 
-In the event the products of the mixin are excluded, your defining `__LOCAL_SCOPE__` to be a snapshot in time that may be mutating under the user, same as `__LOCAL__`, with the additional complexity of wondering which `__traits` are lazy or greedy.
+In the event the products of the mixin are excluded, your defining `__LOCAL_SCOPE__` to be a snapshot in time that may be mutating under the user, same as `__LOCALS__`, with the additional complexity of wondering which `__traits` are lazy or greedy.
 
 
 ## Breaking Changes and Deprecations
 
-User code with `__LOCAL__` will need to pick a new name.  
+User code with `__LOCALS__` will need to pick a new name.  
 
 ## Reference
 Optional links to reference material such as existing discussions, research papers
